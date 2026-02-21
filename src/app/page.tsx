@@ -1,24 +1,20 @@
 'use client'
 
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useAuthStore, useUIStore } from '@/store/useStore'
 
 // Landing Page Components
 import { HeroSection } from '@/components/landing/HeroSection'
 import { AboutSection } from '@/components/landing/AboutSection'
 import { ServicesSection } from '@/components/landing/ServicesSection'
+import { MentorshipSection } from '@/components/landing/MentorshipSection'
 import { CoursesSection } from '@/components/landing/CoursesSection'
 import { ContactSection } from '@/components/landing/ContactSection'
-import { Footer } from '@/components/landing/Footer'
+// Footer imported into ContactSection directly instead
 import { WhatsAppButton } from '@/components/landing/WhatsAppButton'
 
-// Dynamic import for parallax to avoid hydration issues
-import dynamic from 'next/dynamic'
-const ParallaxDoctorImage = dynamic(
-  () => import('@/components/landing/ParallaxDoctorImage').then(mod => mod.ParallaxDoctorImage),
-  { ssr: false }
-)
+// Dynamic import removed since Parallax is integrated into sections using layoutId
 
 // Auth Components
 import { LoginForm } from '@/components/auth/LoginForm'
@@ -59,6 +55,7 @@ export default function HomePage() {
     { id: 'hero', label: 'Início' },
     { id: 'sobre', label: 'Sobre' },
     { id: 'atendimento', label: 'Atendimento' },
+    { id: 'mentoria', label: 'Mentoria' },
     { id: 'cursos', label: 'Cursos' },
     { id: 'contato', label: 'Contato' },
   ]
@@ -70,7 +67,7 @@ export default function HomePage() {
     const observerOptions = {
       root: scrollContainerRef.current,
       rootMargin: '0px',
-      threshold: 0.6
+      threshold: 0.4
     }
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -112,13 +109,66 @@ export default function HomePage() {
   }, [])
 
   // Smooth scroll to section within the scroll container
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = useCallback((sectionId: string) => {
     const element = document.getElementById(sectionId)
     if (element && scrollContainerRef.current) {
+      // Use smooth scroll behavior which takes about 0.8s in most modern browsers
       element.scrollIntoView({ behavior: 'smooth' })
     }
     setMobileMenuOpen(false)
-  }
+  }, [])
+
+  // Custom scroll locking to prevent native fast scrolling and mimic snap
+  const isScrolling = useRef(false)
+  const touchStartY = useRef(0)
+
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    if (showAdmin || isScrolling.current) return
+
+    // Allow native scrolling inside the section if it has overflow
+    // but we use strict section jumping globally
+    e.preventDefault()
+
+    // Ignore tiny trackpad movements
+    if (Math.abs(e.deltaY) < 20) return
+
+    const direction = e.deltaY > 0 ? 1 : -1
+    const nextIndex = Math.max(0, Math.min(sections.length - 1, currentSection + direction))
+
+    if (nextIndex !== currentSection) {
+      isScrolling.current = true
+      scrollToSection(sections[nextIndex].id)
+
+      setTimeout(() => {
+        isScrolling.current = false
+      }, 1000)
+    }
+  }, [currentSection, sections, scrollToSection, showAdmin])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (showAdmin || isScrolling.current) return
+
+    const touchEndY = e.changedTouches[0].clientY
+    const deltaY = touchStartY.current - touchEndY
+
+    if (Math.abs(deltaY) > 50) {
+      const direction = deltaY > 0 ? 1 : -1
+      const nextIndex = Math.max(0, Math.min(sections.length - 1, currentSection + direction))
+
+      if (nextIndex !== currentSection) {
+        isScrolling.current = true
+        scrollToSection(sections[nextIndex].id)
+
+        setTimeout(() => {
+          isScrolling.current = false
+        }, 1200)
+      }
+    }
+  }, [currentSection, sections, scrollToSection, showAdmin])
 
   // Handle admin view
   if (showAdmin && user?.role === 'admin') {
@@ -172,11 +222,10 @@ export default function HomePage() {
                 <motion.button
                   key={section.id}
                   onClick={() => scrollToSection(section.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    currentSection === index
-                      ? 'bg-[#5B21B6] text-white'
-                      : 'text-gray-600 hover:text-[#5B21B6] hover:bg-purple-50'
-                  }`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${currentSection === index
+                    ? 'bg-[#5B21B6] text-white'
+                    : 'text-gray-600 hover:text-[#5B21B6] hover:bg-purple-50'
+                    }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -285,11 +334,10 @@ export default function HomePage() {
                 <button
                   key={section.id}
                   onClick={() => scrollToSection(section.id)}
-                  className={`px-4 py-3 rounded-lg text-left font-medium transition-colors ${
-                    currentSection === index
-                      ? 'bg-[#5B21B6] text-white'
-                      : 'text-gray-600 hover:bg-purple-50'
-                  }`}
+                  className={`px-4 py-3 rounded-lg text-left font-medium transition-colors ${currentSection === index
+                    ? 'bg-[#5B21B6] text-white'
+                    : 'text-gray-600 hover:bg-purple-50'
+                    }`}
                 >
                   {section.label}
                 </button>
@@ -299,41 +347,45 @@ export default function HomePage() {
         )}
       </motion.header>
 
-      {/* Parallax Doctor Image - Fixed position, moves based on scroll */}
-      <ParallaxDoctorImage scrollContainerRef={scrollContainerRef} />
-
-      {/* Main Content - Full page sections with snap scrolling */}
-      <div 
-        ref={scrollContainerRef} 
-        className="h-full overflow-y-scroll scroll-container pt-16"
+      {/* Main Content - Strict Hidden Global Scroll */}
+      <div
+        ref={scrollContainerRef}
+        className="h-full w-full overflow-hidden"
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        {/* Hero Section */}
-        <section id="hero" className="h-screen snap-start snap-always">
-          <HeroSection />
-        </section>
+        <LayoutGroup>
+          {/* Hero Section */}
+          <section id="hero" className="relative z-10 bg-[#FAFAF9] h-screen w-full flex-shrink-0">
+            <HeroSection isHeroActive={currentSection === 0} />
+          </section>
 
-        {/* About Section */}
-        <section id="sobre" className="min-h-screen snap-start snap-always">
-          <AboutSection />
-        </section>
+          {/* About Section */}
+          <section id="sobre" className="relative z-10 w-full h-screen overflow-y-auto flex-shrink-0">
+            <AboutSection isAboutActive={currentSection === 1} />
+          </section>
 
-        {/* Services Section */}
-        <section id="atendimento" className="min-h-screen snap-start snap-always">
-          <ServicesSection />
-        </section>
+          {/* Services Section */}
+          <section id="atendimento" className="relative w-full h-screen overflow-y-auto flex-shrink-0">
+            <ServicesSection />
+          </section>
 
-        {/* Courses Section */}
-        <section id="cursos" className="min-h-screen snap-start snap-always">
-          <CoursesSection />
-        </section>
+          {/* Mentorship Section */}
+          <section id="mentoria" className="relative w-full h-screen overflow-y-auto flex-shrink-0">
+            <MentorshipSection />
+          </section>
 
-        {/* Contact Section - snap-always disabled to allow scroll to footer */}
-        <section id="contato" className="min-h-screen snap-start">
-          <ContactSection />
-        </section>
+          {/* Courses Section */}
+          <section id="cursos" className="relative w-full h-screen overflow-y-auto flex-shrink-0">
+            <CoursesSection />
+          </section>
 
-        {/* Footer */}
-        <Footer />
+          {/* Contact Section */}
+          <section id="contato" className="relative w-full h-screen overflow-y-auto flex-shrink-0 bg-[#FAFAF9]">
+            <ContactSection />
+          </section>
+        </LayoutGroup>
       </div>
 
       {/* Floating WhatsApp Button */}

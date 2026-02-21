@@ -10,7 +10,7 @@ interface AuthStore {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  
+
   // Actions
   setUser: (user: User | null) => void
   setLoading: (loading: boolean) => void
@@ -24,17 +24,17 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isAuthenticated: false,
       isLoading: true,
-      
-      setUser: (user) => set({ 
-        user, 
+
+      setUser: (user) => set({
+        user,
         isAuthenticated: !!user,
-        isLoading: false 
+        isLoading: false
       }),
       setLoading: (loading) => set({ isLoading: loading }),
-      logout: () => set({ 
-        user: null, 
+      logout: () => set({
+        user: null,
         isAuthenticated: false,
-        isLoading: false 
+        isLoading: false
       }),
       updateProfile: (data) => set((state) => ({
         user: state.user ? { ...state.user, ...data } : null
@@ -42,9 +42,9 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ 
+      partialize: (state) => ({
         user: state.user,
-        isAuthenticated: state.isAuthenticated 
+        isAuthenticated: state.isAuthenticated
       }),
     }
   )
@@ -58,7 +58,7 @@ interface AnamneseStore {
   currentStep: number
   formData: Partial<Anamnese>
   isSubmitting: boolean
-  
+
   // Actions
   setStep: (step: number) => void
   nextStep: () => void
@@ -74,12 +74,12 @@ export const useAnamneseStore = create<AnamneseStore>()(
       currentStep: 1,
       formData: {},
       isSubmitting: false,
-      
+
       setStep: (step) => set({ currentStep: step }),
       nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
       prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
-      updateFormData: (data) => set((state) => ({ 
-        formData: { ...state.formData, ...data } 
+      updateFormData: (data) => set((state) => ({
+        formData: { ...state.formData, ...data }
       })),
       setSubmitting: (submitting) => set({ isSubmitting: submitting }),
       reset: () => set({ currentStep: 1, formData: {}, isSubmitting: false }),
@@ -103,10 +103,10 @@ interface UIStore {
   isProfileModalOpen: boolean
   isConfigModalOpen: boolean
   isNotificationPanelOpen: boolean
-  
+
   // Loading states
   isPageLoading: boolean
-  
+
   // Actions
   setLoginModalOpen: (open: boolean) => void
   setRegisterModalOpen: (open: boolean) => void
@@ -128,7 +128,7 @@ export const useUIStore = create<UIStore>((set) => ({
   isConfigModalOpen: false,
   isNotificationPanelOpen: false,
   isPageLoading: false,
-  
+
   setLoginModalOpen: (open) => set({ isLoginModalOpen: open }),
   setRegisterModalOpen: (open) => set({ isRegisterModalOpen: open }),
   setAnamneseModalOpen: (open) => set({ isAnamneseModalOpen: open }),
@@ -164,7 +164,7 @@ export interface Notification {
 
 interface NotificationStore {
   notifications: Notification[]
-  
+
   // Actions
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
   markAsRead: (id: string) => void
@@ -201,7 +201,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       read: true,
     },
   ],
-  
+
   addNotification: (notification) => set((state) => ({
     notifications: [
       {
@@ -213,23 +213,23 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       ...state.notifications,
     ],
   })),
-  
+
   markAsRead: (id) => set((state) => ({
     notifications: state.notifications.map((n) =>
       n.id === id ? { ...n, read: true } : n
     ),
   })),
-  
+
   markAllAsRead: () => set((state) => ({
     notifications: state.notifications.map((n) => ({ ...n, read: true })),
   })),
-  
+
   deleteNotification: (id) => set((state) => ({
     notifications: state.notifications.filter((n) => n.id !== id),
   })),
-  
+
   clearAll: () => set({ notifications: [] }),
-  
+
   getUnreadCount: () => get().notifications.filter((n) => !n.read).length,
 }))
 
@@ -251,7 +251,7 @@ export interface IncompleteRegistration {
 
 interface IncompleteRegistrationStore {
   registrations: IncompleteRegistration[]
-  
+
   // Actions
   addRegistration: (registration: Omit<IncompleteRegistration, 'id' | 'startedAt' | 'lastActivityAt'>) => void
   updateRegistration: (id: string, data: Partial<IncompleteRegistration>) => void
@@ -283,7 +283,7 @@ export const useIncompleteRegistrationStore = create<IncompleteRegistrationStore
       formData: { name: 'Carlos Santos', email: 'carlos.santos@email.com' },
     },
   ],
-  
+
   addRegistration: (registration) => set((state) => ({
     registrations: [
       {
@@ -295,17 +295,17 @@ export const useIncompleteRegistrationStore = create<IncompleteRegistrationStore
       ...state.registrations,
     ],
   })),
-  
+
   updateRegistration: (id, data) => set((state) => ({
     registrations: state.registrations.map((r) =>
       r.id === id ? { ...r, ...data, lastActivityAt: new Date() } : r
     ),
   })),
-  
+
   removeRegistration: (id) => set((state) => ({
     registrations: state.registrations.filter((r) => r.id !== id),
   })),
-  
+
   getByEmail: (email) => get().registrations.find((r) => r.email === email),
 }))
 
@@ -325,7 +325,7 @@ export interface PatientAnalytics {
 
 interface AnalyticsStore {
   analytics: PatientAnalytics
-  
+
   // Actions
   updateAnalytics: (data: Partial<PatientAnalytics>) => void
 }
@@ -366,7 +366,7 @@ export const useAnalyticsStore = create<AnalyticsStore>(() => ({
     averageSessionsPerPatient: 8.5,
     retentionRate: 78,
   },
-  
+
   updateAnalytics: () => {
     // Would recalculate from actual data
   },
@@ -395,16 +395,16 @@ interface MockDataStore {
     totalRevenue: number
     totalSessions: number
   }[]
-  
+
   // Actions
   setPatients: (patients: Patient[]) => void
   addPatient: (patient: Patient) => void
   updatePatient: (id: string, data: Partial<Patient>) => void
-  
+
   setAnamneses: (anamneses: Anamnese[]) => void
   addAnamnese: (anamnese: Anamnese) => void
   updateAnamnese: (id: string, data: Partial<Anamnese>) => void
-  
+
   setAppointments: (appointments: Appointment[]) => void
   addAppointment: (appointment: Appointment) => void
   updateAppointment: (id: string, data: Partial<Appointment>) => void
@@ -426,8 +426,8 @@ const mockPatients: Patient[] = [
     emergencyContactPhone: '(11) 98765-4321',
     emergencyContactRelationship: 'Mãe',
     status: 'active',
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-10'),
+    createdAt: new Date('2026-01-10'),
+    updatedAt: new Date('2026-01-10'),
   },
   {
     id: '2',
@@ -443,8 +443,8 @@ const mockPatients: Patient[] = [
     emergencyContactPhone: '(11) 91234-5678',
     emergencyContactRelationship: 'Esposa',
     status: 'active',
-    createdAt: new Date('2024-02-15'),
-    updatedAt: new Date('2024-02-15'),
+    createdAt: new Date('2026-02-15'),
+    updatedAt: new Date('2026-02-15'),
   },
   {
     id: '3',
@@ -457,8 +457,8 @@ const mockPatients: Patient[] = [
     addressCity: 'São Paulo',
     addressState: 'SP',
     status: 'active',
-    createdAt: new Date('2024-03-01'),
-    updatedAt: new Date('2024-03-01'),
+    createdAt: new Date('2026-03-01'),
+    updatedAt: new Date('2026-03-01'),
   },
 ]
 
@@ -481,9 +481,9 @@ const mockAnamneses: Anamnese[] = [
     concentrationLevel: 5,
     status: 'approved',
     consentGiven: true,
-    consentDate: new Date('2024-01-10'),
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-10'),
+    consentDate: new Date('2026-01-10'),
+    createdAt: new Date('2026-01-10'),
+    updatedAt: new Date('2026-01-10'),
   },
   {
     id: '2',
@@ -500,9 +500,9 @@ const mockAnamneses: Anamnese[] = [
     concentrationLevel: 7,
     status: 'pending_review',
     consentGiven: true,
-    consentDate: new Date('2024-02-15'),
-    createdAt: new Date('2024-02-15'),
-    updatedAt: new Date('2024-02-15'),
+    consentDate: new Date('2026-02-15'),
+    createdAt: new Date('2026-02-15'),
+    updatedAt: new Date('2026-02-15'),
   },
 ]
 
@@ -510,46 +510,46 @@ const mockAppointments: Appointment[] = [
   {
     id: '1',
     patientId: '1',
-    scheduledDate: new Date('2024-12-20T10:00:00'),
+    scheduledDate: new Date('2026-12-20T10:00:00'),
     durationMinutes: 50,
     type: 'online',
     status: 'confirmed',
     price: 200,
     paymentStatus: 'paid',
     paymentMethod: 'PIX',
-    createdAt: new Date('2024-12-15'),
-    updatedAt: new Date('2024-12-15'),
+    createdAt: new Date('2026-12-15'),
+    updatedAt: new Date('2026-12-15'),
   },
   {
     id: '2',
     patientId: '2',
-    scheduledDate: new Date('2024-12-20T14:00:00'),
+    scheduledDate: new Date('2026-12-20T14:00:00'),
     durationMinutes: 50,
     type: 'presencial',
     status: 'scheduled',
     price: 250,
     paymentStatus: 'pending',
-    createdAt: new Date('2024-12-16'),
-    updatedAt: new Date('2024-12-16'),
+    createdAt: new Date('2026-12-16'),
+    updatedAt: new Date('2026-12-16'),
   },
   {
     id: '3',
     patientId: '1',
-    scheduledDate: new Date('2024-12-27T10:00:00'),
+    scheduledDate: new Date('2026-12-27T10:00:00'),
     durationMinutes: 50,
     type: 'online',
     status: 'scheduled',
     price: 200,
     paymentStatus: 'pending',
-    createdAt: new Date('2024-12-17'),
-    updatedAt: new Date('2024-12-17'),
+    createdAt: new Date('2026-12-17'),
+    updatedAt: new Date('2026-12-17'),
   },
 ]
 
 const mockMonthlyDetails = [
   {
     month: 'Janeiro',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '1', name: 'Maria Silva', sessions: 4, revenue: 800 },
       { id: '2', name: 'João Santos', sessions: 3, revenue: 750 },
@@ -561,7 +561,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Fevereiro',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '1', name: 'Maria Silva', sessions: 5, revenue: 1000 },
       { id: '3', name: 'Ana Costa', sessions: 4, revenue: 800 },
@@ -573,7 +573,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Março',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '2', name: 'João Santos', sessions: 4, revenue: 1000 },
       { id: '4', name: 'Pedro Lima', sessions: 3, revenue: 600 },
@@ -584,7 +584,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Abril',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '1', name: 'Maria Silva', sessions: 5, revenue: 1000 },
       { id: '3', name: 'Ana Costa', sessions: 4, revenue: 800 },
@@ -597,7 +597,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Maio',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '2', name: 'João Santos', sessions: 4, revenue: 1000 },
       { id: '6', name: 'Lucas Oliveira', sessions: 3, revenue: 600 },
@@ -609,7 +609,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Junho',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '1', name: 'Maria Silva', sessions: 6, revenue: 1200 },
       { id: '3', name: 'Ana Costa', sessions: 5, revenue: 1000 },
@@ -622,7 +622,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Julho',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '5', name: 'Carla Souza', sessions: 4, revenue: 800 },
       { id: '9', name: 'Juliana Alves', sessions: 4, revenue: 800 },
@@ -634,7 +634,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Agosto',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '1', name: 'Maria Silva', sessions: 4, revenue: 800 },
       { id: '2', name: 'João Santos', sessions: 4, revenue: 1000 },
@@ -647,7 +647,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Setembro',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '3', name: 'Ana Costa', sessions: 5, revenue: 1000 },
       { id: '4', name: 'Pedro Lima', sessions: 4, revenue: 800 },
@@ -660,7 +660,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Outubro',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '5', name: 'Carla Souza', sessions: 5, revenue: 1000 },
       { id: '9', name: 'Juliana Alves', sessions: 4, revenue: 800 },
@@ -673,7 +673,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Novembro',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '1', name: 'Maria Silva', sessions: 4, revenue: 800 },
       { id: '6', name: 'Lucas Oliveira', sessions: 4, revenue: 800 },
@@ -686,7 +686,7 @@ const mockMonthlyDetails = [
   },
   {
     month: 'Dezembro',
-    year: 2024,
+    year: 2026,
     patients: [
       { id: '2', name: 'João Santos', sessions: 3, revenue: 750 },
       { id: '3', name: 'Ana Costa', sessions: 3, revenue: 600 },
@@ -713,33 +713,33 @@ export const useMockDataStore = create<MockDataStore>((set) => ({
   appointments: mockAppointments,
   stats: mockStats,
   monthlyDetails: mockMonthlyDetails,
-  
+
   setPatients: (patients) => set({ patients }),
-  addPatient: (patient) => set((state) => ({ 
-    patients: [...state.patients, patient] 
+  addPatient: (patient) => set((state) => ({
+    patients: [...state.patients, patient]
   })),
   updatePatient: (id, data) => set((state) => ({
-    patients: state.patients.map((p) => 
+    patients: state.patients.map((p) =>
       p.id === id ? { ...p, ...data } : p
     ),
   })),
-  
+
   setAnamneses: (anamneses) => set({ anamneses }),
-  addAnamnese: (anamnese) => set((state) => ({ 
-    anamneses: [...state.anamneses, anamnese] 
+  addAnamnese: (anamnese) => set((state) => ({
+    anamneses: [...state.anamneses, anamnese]
   })),
   updateAnamnese: (id, data) => set((state) => ({
-    anamneses: state.anamneses.map((a) => 
+    anamneses: state.anamneses.map((a) =>
       a.id === id ? { ...a, ...data } : a
     ),
   })),
-  
+
   setAppointments: (appointments) => set({ appointments }),
-  addAppointment: (appointment) => set((state) => ({ 
-    appointments: [...state.appointments, appointment] 
+  addAppointment: (appointment) => set((state) => ({
+    appointments: [...state.appointments, appointment]
   })),
   updateAppointment: (id, data) => set((state) => ({
-    appointments: state.appointments.map((a) => 
+    appointments: state.appointments.map((a) =>
       a.id === id ? { ...a, ...data } : a
     ),
   })),

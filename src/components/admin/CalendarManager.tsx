@@ -76,7 +76,7 @@ export function CalendarManager() {
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null)
   const [selectedPatientForView, setSelectedPatientForView] = useState<string | null>(null)
   const [selectedAnamneseForView, setSelectedAnamneseForView] = useState<string | null>(null)
-  
+
   const [formData, setFormData] = useState<AppointmentFormData>({
     patientId: '',
     date: '',
@@ -109,14 +109,7 @@ export function CalendarManager() {
 
   const handleDayClick = (day: number) => {
     const clickedDate = new Date(year, month, day)
-    if (clickedDate >= new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
-      setSelectedDate(clickedDate)
-      setFormData({
-        ...formData,
-        date: clickedDate.toISOString().split('T')[0],
-      })
-      setIsModalOpen(true)
-    }
+    setSelectedDate(clickedDate)
   }
 
   const handleAppointmentClick = (appointmentId: string) => {
@@ -140,7 +133,7 @@ export function CalendarManager() {
     if (!formData.patientId || !formData.date || !formData.time) return
 
     const scheduledDate = new Date(`${formData.date}T${formData.time}:00`)
-    
+
     if (editingAppointment) {
       updateAppointment(editingAppointment, {
         scheduledDate,
@@ -183,8 +176,8 @@ export function CalendarManager() {
   }
 
   const renderDays = () => {
-    const days = []
-    
+    const days: React.ReactNode[] = []
+
     // Empty cells for days before first day of month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(
@@ -195,6 +188,7 @@ export function CalendarManager() {
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day)
+      const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString()
       const isToday = date.toDateString() === today.toDateString()
       const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate())
       const dayOfWeek = date.getDay()
@@ -204,17 +198,17 @@ export function CalendarManager() {
       days.push(
         <div
           key={day}
-          onClick={() => !isPast && handleDayClick(day)}
-          className={`h-28 p-1 border-t border-r border-gray-100 transition-all duration-200 ${
-            isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' :
-            isToday ? 'bg-purple-50 cursor-pointer hover:bg-purple-100' :
-            isWorkingDay ? 'bg-white cursor-pointer hover:bg-gray-50' : 'bg-gray-50'
-          }`}
+          onClick={() => handleDayClick(day)}
+          className={`h-28 p-1 border-t border-r border-gray-100 transition-all duration-200 cursor-pointer ${isSelected ? 'bg-purple-100 ring-2 ring-purple-400 ring-inset' :
+            isPast ? 'bg-gray-100 opacity-60' :
+              isToday ? 'bg-purple-50 hover:bg-purple-100' :
+                isWorkingDay ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
+            }`}
         >
-          <div className={`text-sm font-medium mb-1 ${
+          <div className={`text-sm font-medium mb-1 ${isSelected ? 'bg-purple-700 text-white w-6 h-6 rounded-full flex items-center justify-center' :
             isToday ? 'bg-purple-600 text-white w-6 h-6 rounded-full flex items-center justify-center' :
-            isPast ? 'text-gray-400' : 'text-gray-700'
-          }`}>
+              isPast ? 'text-gray-400' : 'text-gray-700'
+            }`}>
             {day}
           </div>
           <div className="space-y-0.5 overflow-hidden">
@@ -225,9 +219,8 @@ export function CalendarManager() {
                   e.stopPropagation()
                   handleAppointmentClick(apt.id)
                 }}
-                className={`text-xs px-1.5 py-0.5 rounded truncate cursor-pointer transition-transform hover:scale-[1.02] ${
-                  apt.type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                }`}
+                className={`text-xs px-1.5 py-0.5 rounded truncate cursor-pointer transition-transform hover:scale-[1.02] ${apt.type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                  }`}
               >
                 {new Date(apt.scheduledDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </div>
@@ -269,9 +262,10 @@ export function CalendarManager() {
             className="bg-[#5B21B6] hover:bg-[#4C1D95]"
             onClick={() => {
               setEditingAppointment(null)
+              const dt = selectedDate || today
               setFormData({
                 patientId: '',
-                date: today.toISOString().split('T')[0],
+                date: dt.toISOString().split('T')[0],
                 time: '10:00',
                 type: 'online',
                 duration: 50,
@@ -324,26 +318,41 @@ export function CalendarManager() {
           </CardContent>
         </Card>
 
-        {/* Today's schedule */}
+        {/* Today's schedule side panel */}
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="h-4 w-4 text-purple-600" />
-              Consultas de Hoje
+              {selectedDate && selectedDate.toDateString() !== today.toDateString()
+                ? `Consultas de ${selectedDate.toLocaleDateString('pt-BR')}`
+                : 'Consultas de Hoje'}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {(() => {
-              const todayAppointments = appointments.filter(
-                a => new Date(a.scheduledDate).toDateString() === today.toDateString()
+              const displayDate = selectedDate || today
+              const displayAppointments = appointments.filter(
+                a => new Date(a.scheduledDate).toDateString() === displayDate.toDateString()
               ).sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
 
-              if (todayAppointments.length === 0) {
+              if (displayAppointments.length === 0) {
                 return (
                   <div className="text-center py-8 text-gray-500">
                     <CalendarIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>Nenhuma consulta hoje</p>
-                    <Button variant="link" className="mt-2" onClick={() => setIsModalOpen(true)}>
+                    <p>Nenhuma consulta marcada.</p>
+                    <Button variant="link" className="mt-2" onClick={() => {
+                      setEditingAppointment(null)
+                      setFormData({
+                        patientId: '',
+                        date: displayDate.toISOString().split('T')[0],
+                        time: '10:00',
+                        type: 'online',
+                        duration: 50,
+                        price: 200,
+                        notes: '',
+                      })
+                      setIsModalOpen(true)
+                    }}>
                       Adicionar consulta
                     </Button>
                   </div>
@@ -352,7 +361,7 @@ export function CalendarManager() {
 
               return (
                 <div className="space-y-3">
-                  {todayAppointments.map(apt => {
+                  {displayAppointments.map(apt => {
                     const patient = patients.find(p => p.id === apt.patientId)
                     const anamnese = anamneses.find(a => a.patientId === apt.patientId)
                     return (
@@ -388,33 +397,33 @@ export function CalendarManager() {
                               </div>
                             </div>
                           </div>
-                          <Badge className={`${
-                            apt.type === 'online' ? 'bg-[#DBEAFE] text-[#4F46E5]' : 'bg-[#DCFCE7] text-[#16A34A]'
-                          }`}>
+                          <Badge className={`${apt.type === 'online' ? 'bg-[#DBEAFE] text-[#4F46E5]' : 'bg-[#DCFCE7] text-[#16A34A]'
+                            }`}>
                             {apt.type === 'online' ? <Video className="h-3 w-3 mr-1" /> : <MapPin className="h-3 w-3 mr-1" />}
                             {apt.type === 'online' ? 'Online' : 'Presencial'}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                           <div className="flex items-center gap-2">
-                            <Select
-                              value={apt.status}
-                              onValueChange={(value: 'scheduled' | 'confirmed' | 'completed' | 'cancelled') => 
-                                handleStatusChange(apt.id, value)
-                              }
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <SelectTrigger className="w-24 h-7 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="scheduled">Agendado</SelectItem>
-                                <SelectItem value="confirmed">Confirmado</SelectItem>
-                                <SelectItem value="completed">Concluído</SelectItem>
-                                <SelectItem value="cancelled">Cancelado</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Select
+                                value={apt.status}
+                                onValueChange={(value: 'scheduled' | 'confirmed' | 'completed' | 'cancelled') =>
+                                  handleStatusChange(apt.id, value)
+                                }
+                              >
+                                <SelectTrigger className="w-24 h-7 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="scheduled">Agendado</SelectItem>
+                                  <SelectItem value="confirmed">Confirmado</SelectItem>
+                                  <SelectItem value="completed">Concluído</SelectItem>
+                                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                             {anamnese && (
                               <Badge variant="outline" className="text-xs">
                                 <FileText className="h-3 w-3 mr-1" />
@@ -598,7 +607,7 @@ export function CalendarManager() {
             <Button variant="outline" onClick={() => setIsConfigOpen(false)}>
               Cancelar
             </Button>
-            <Button 
+            <Button
               className="bg-[#5B21B6] hover:bg-[#4C1D95]"
               onClick={() => setIsConfigOpen(false)}
             >
@@ -618,9 +627,9 @@ export function CalendarManager() {
             const patient = patients.find(p => p.id === selectedPatientForView)
             const anamnese = anamneses.find(a => a.patientId === selectedPatientForView)
             const patientAppointments = appointments.filter(a => a.patientId === selectedPatientForView)
-            
+
             if (!patient) return <p>Paciente não encontrado</p>
-            
+
             return (
               <div className="space-y-4">
                 {/* Header */}
@@ -691,7 +700,7 @@ export function CalendarManager() {
                           <p className="font-medium text-[#1C1917]">Anamnese Disponível</p>
                           <p className="text-xs text-[#78716C]">
                             {anamnese.status === 'approved' ? 'Aprovada' :
-                             anamnese.status === 'pending_review' ? 'Pendente de revisão' : 'Revisada'}
+                              anamnese.status === 'pending_review' ? 'Pendente de revisão' : 'Revisada'}
                           </p>
                         </div>
                       </div>
@@ -705,6 +714,34 @@ export function CalendarManager() {
                     </div>
                   </div>
                 )}
+
+                {/* Medical History & Session Notes */}
+                <div className="pt-4 border-t">
+                  <h4 className="font-medium text-[#1C1917] mb-3">Histórico de Sessões</h4>
+                  {patientAppointments.length > 0 ? (
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                      {patientAppointments
+                        .sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime())
+                        .map(apt => (
+                          <div key={apt.id} className="bg-gray-50 rounded-lg p-3 text-sm">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-medium text-[#5B21B6]">
+                                {new Date(apt.scheduledDate).toLocaleDateString('pt-BR')}
+                              </span>
+                              <Badge variant="outline" className="text-[10px] h-5">
+                                {apt.status === 'completed' ? 'Concluída' : 'Agendada'}
+                              </Badge>
+                            </div>
+                            <p className="text-[#4B5563] mt-1 whitespace-pre-wrap">
+                              {apt.sessionNotes || 'Nenhuma anotação registrada.'}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Nenhuma sessão registrada.</p>
+                  )}
+                </div>
 
                 {/* Contact */}
                 {patient.emergencyContactName && (
@@ -740,6 +777,6 @@ export function CalendarManager() {
           {selectedAnamneseForView && <AnamneseDetailView anamneseId={selectedAnamneseForView} />}
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   )
 }

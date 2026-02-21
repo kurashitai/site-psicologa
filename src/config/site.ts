@@ -4,7 +4,7 @@ export const siteConfig = {
   title: 'Dra. Carolina Mendes | Psicóloga Clínica',
   description: 'Psicóloga Clínica especializada em Terapia Cognitivo-Comportamental. Atendimento online e presencial. Agende sua consulta.',
   url: 'https://dracarolina.com.br',
-  
+
   // Informações profissionais
   professional: {
     name: 'Dra. Carolina Mendes',
@@ -39,6 +39,21 @@ Minha abordagem é baseada na escuta acolhedora, no respeito à individualidade 
   // Configurações do WhatsApp
   whatsapp: {
     defaultMessage: 'Olá, Dra. Carolina! Gostaria de agendar uma consulta.',
+  },
+
+  // Mentoria
+  mentorship: {
+    title: 'Mentoria para Psicólogos Clíinicos',
+    description: 'Acelere sua carreira e refine seus atendimentos com supervisão de casos e estratégias práticas de captação.',
+    price: 997,
+    duration: '3 meses',
+    checkoutUrl: '#',
+    modules: [
+      'Estruturação de Prática Clínica',
+      'Supervisão de Casos (TCC)',
+      'Posicionamento e Captação de Pacientes',
+      'Gestão Financeira para Psicólogos'
+    ]
   },
 
   // Horários de atendimento

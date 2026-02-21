@@ -18,9 +18,6 @@ export const metadata: Metadata = {
   description: "Psicóloga Clínica especializada em Terapia Cognitivo-Comportamental. Atendimento online e presencial. Agende sua consulta.",
   keywords: ["psicóloga", "terapia", "saúde mental", "terapia online", "psicologia", "ansiedade", "depressão"],
   authors: [{ name: "Dra. Carolina Mendes" }],
-  icons: {
-    icon: "/logo.svg",
-  },
   openGraph: {
     title: "Dra. Carolina Mendes | Psicóloga Clínica",
     description: "Psicóloga Clínica especializada em Terapia Cognitivo-Comportamental. Atendimento online e presencial.",

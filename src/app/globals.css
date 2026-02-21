@@ -121,21 +121,11 @@
   }
 }
 
-/* Scroll snap for landing page sections - mandatory for full page snap */
+/* Scroll container configuration for smooth scrolling */
 .scroll-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: scroll;
+  overflow-y: auto;
+  scroll-behavior: smooth;
   height: 100vh;
-}
-
-.scroll-container > section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-
-/* Allow footer to be visible after contact section */
-.scroll-container > footer {
-  scroll-snap-align: start;
 }
 
 /* Cursor pointer for all clickable elements */
