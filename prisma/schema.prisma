@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("patient") // admin or patient
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  patient   Patient?
+}
+
+model Patient {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  birthDate     DateTime
+  gender        String
+  profession    String?
+  maritalStatus String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anamneses   Anamnese[]
+  appointments Appointment[]
+}
+
+model Anamnese {
+  id           String   @id @default(cuid())
+  patientId    String
+  data         String   // JSON string of AnamneseData
+  status       String   @default("em_andamento")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Appointment {
+  id         String   @id @default(cuid())
+  patientId  String
+  date       DateTime
+  duration   Int      @default(50)
+  type       String   @default("online")
+  status     String   @default("agendada")
+  notes      String?
+  value      Float    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
